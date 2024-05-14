@@ -595,3 +595,136 @@ Atomicity violations occur when a sequence of operations that should be executed
    - **Minimize shared data**: Reduce the amount of shared data that needs to be accessed concurrently.
    - **Immutable objects**: Use immutable objects to avoid the need for synchronization on shared data.
    - **Design for concurrency**: Design the application with concurrency in mind from the start, considering how threads will interact with shared resources.
+
+## Other problems
+
+### Crossing the river
+You have been hired to coordinate people trying to cross a river. There is only a single boat, capable of holding at most three people. The boat will sink if more than three people board it at a time. Each person is modeled as a separate thread, executing the function below:
+
+```cpp
+void Person(int index, int location)
+// location is either 0 or 1;
+// 0 = left bank, 1 = right bank of the river
+{
+    ArriveAtBoat(index, location);
+    BoardBoatAndCrossRiver(location);
+    GetOffOfBoat(index, location);
+}
+```
+
+Synchronization is to be done using monitors and condition variables in the two procedures `ArriveAtBoat` and `GetOffOfBoat`. Provide the code for `ArriveAtBoat` and `GetOffOfBoat`. The `BoardBoatAndCrossRiver` procedure is not of interest in this problem since it has no role in synchronization. `ArriveAtBoat` must not return until it safe for the person to cross the river in the given direction (it must guarantee that the boat will not sink, and that no one will step off the pier into the river when the boat is on the opposite bank). `GetOffOfBoat` is called to indicate that the caller has finished crossing the river; it can take steps to let other people cross the river.
+
+#### Solution
+
+```cpp
+class Boat
+{
+private:
+    int _location = 0;
+
+    std::vector<int> _load;
+    std::vector<Condition> _conditions;
+
+    const Lock _global_lock = Lock();
+
+public:
+    const int CAPACITY = 3;
+
+    Boat()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            _conditions.push_back(Condition(&_global_lock));
+        }
+    }
+
+    void board(int index, int location)
+    {
+        _global_lock.acquire();
+
+        while (location != _location || _load.size() == 3)
+        {
+            _conditions[location].wait();
+        }
+
+        std::stringstream ss;
+        ss << "Person " << index << " boarded: " << location << " -> " << 1 - location << "\n";
+        std::cout << ss.str();
+
+        _load.push_back(index);
+        _global_lock.release();
+    }
+
+    void get_off(int index, int location)
+    {
+        _global_lock.acquire();
+
+        std::stringstream ss;
+        ss << "Person " << index << " got off: " << location << " -> " << 1 - location << "\n";
+        std::cout << ss.str();
+
+        _load.pop_back();
+        if (_load.empty())
+        {
+            _location = 1 - _location;
+            _conditions[_location].notify_all();
+        }
+
+        _global_lock.release();
+    }
+};
+
+const int PEOPLE_COUNT = 4;
+Boat boat;
+
+void ArriveAtBoat(int index, int location)
+{
+    boat.board(index, location);
+}
+
+void GetOffOfBoat(int index, int location)
+{
+    boat.get_off(index, location);
+}
+
+void BoardBoatAndCrossRiver(int location)
+{
+}
+
+void Person(int index, int location)
+// location is either 0 or 1;
+// 0 = left bank, 1 = right bank of the river
+{
+    ArriveAtBoat(index, location);
+    BoardBoatAndCrossRiver(location);
+    GetOffOfBoat(index, location);
+}
+
+DWORD WINAPI routine(void *_index)
+{
+    int index = *(int *)_index, location = 0;
+    while (true)
+    {
+        std::stringstream ss;
+        ss << "Person " << index << " at " << location << "\n";
+        std::cout << ss.str();
+
+        Person(index, location);
+        location = 1 - location;
+    }
+}
+
+int main()
+{
+    std::vector<HANDLE> threads;
+    for (int i = 0; i < PEOPLE_COUNT; i++)
+    {
+        threads.push_back(CreateThread(NULL, 0, &routine, new int(i), 0, NULL)); // ignore memory leak
+    }
+
+    WaitForMultipleObjects(threads.size(), &threads[0], TRUE, INFINITE);
+    return 0;
+}
+```
+
+Note that this solution may lead to starvation. The readers is encouraged to develop a starvation-free solution. 
