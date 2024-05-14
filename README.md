@@ -146,11 +146,6 @@ The ABA problem occurs when multiple threads (or processes) accessing shared dat
 An example illustrating how the ABA problem occurs:
 
 ```cpp
-#include <atomic>
-#include <iostream>
-#include <stdexcept>
-#include <windows.h>
-
 class __StackNode
 {
 public:
@@ -324,30 +319,27 @@ Here is the description for this problem
 
 ### Example
 
-```cpp
-#include <chrono>
-#include <iostream>
-#include <random>
-#include <windows.h>
+A naive implementation given below, where each smoker waits for the other 2, will easily suffer from deadlock.
 
+```cpp
 std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
 
 template <typename T>
-T random_int(const T l, const T r)
+T random_int(const T &l, const T &r)
 {
     std::uniform_int_distribution<T> unif(l, r);
     return unif(rng);
 }
 
-HANDLE smoking;
-std::vector<HANDLE> semaphores;
+const Lock smoking = Lock();
+std::vector<Lock> locks(3);
 
-void synchronization_primitives()
+void initialize()
 {
-    smoking = CreateSemaphoreW(NULL, 0, 1, NULL);
+    smoking.acquire();
     for (int i = 0; i < 3; i++)
     {
-        semaphores.push_back(CreateSemaphoreW(NULL, 0, 1, NULL));
+        locks[i].acquire();
     }
 }
 
@@ -358,9 +350,9 @@ DWORD WINAPI agent(void *)
         int ingredient = random_int(0, 2), next_ingredient = (1 + ingredient) % 3;
         std::cout << "Got ingredients " << ingredient << ", " << next_ingredient << std::endl;
 
-        ReleaseSemaphore(semaphores[ingredient], 1, NULL);
-        ReleaseSemaphore(semaphores[next_ingredient], 1, NULL);
-        WaitForSingleObject(smoking, INFINITE);
+        locks[ingredient].release();
+        locks[next_ingredient].release();
+        smoking.acquire();
     }
 
     return 0;
@@ -371,14 +363,17 @@ DWORD WINAPI smoker(void *ptr)
     int ingredient = *(int *)ptr;
     while (true)
     {
-        WaitForSingleObject(semaphores[(ingredient + 1) % 3], INFINITE);
+        locks[(ingredient + 1) % 3].acquire();
         std::cout << "Smoker " << ingredient << " got " << (ingredient + 1) % 3 << std::endl;
-        WaitForSingleObject(semaphores[(ingredient + 2) % 3], INFINITE);
+
+        locks[(ingredient + 2) % 3].acquire();
         std::cout << "Smoker " << ingredient << " got " << (ingredient + 2) % 3 << std::endl;
+
         std::cout << "Smoker " << ingredient << " is smoking" << std::endl;
         Sleep(500);
         std::cout << "Smoker " << ingredient << " is done" << std::endl;
-        ReleaseSemaphore(smoking, 1, NULL);
+
+        smoking.release();
     }
 
     return 0;
@@ -386,7 +381,7 @@ DWORD WINAPI smoker(void *ptr)
 
 int main()
 {
-    synchronization_primitives();
+    initialize();
 
     std::vector<HANDLE> threads;
     threads.push_back(
@@ -403,15 +398,7 @@ int main()
     for (int i = 0; i < 3; i++)
     {
         ingredient_ptr[i] = new int(i);
-        threads.push_back(
-            CreateThread(
-                NULL,              // lpThreadAttributes
-                0,                 // dwStackSize
-                &smoker,           // lpStartAddress
-                ingredient_ptr[i], // lpParameter
-                0,                 // dwCreationFlags
-                NULL)              // lpThreadId
-        );
+        threads.push_back(CreateThread(NULL, 0, &smoker, ingredient_ptr[i], 0, NULL));
     }
 
     for (auto &thread : threads)
@@ -428,8 +415,6 @@ int main()
     return 0;
 }
 ```
-
-In the example above, The `agent` thread randomly places two ingredients on the table. Each `smoker` thread waits for the required ingredients, makes a cigarette, smokes it, and then signals the agent to continue.
 
 ### Real-world implications
 
