@@ -49,6 +49,78 @@ When multiple threads are waiting for the semaphore, they will be put in a FIFO 
 
 If the internal counter of the semaphore has an upper limit of 1, it is identical to a lock.
 
+## Implementation
+
+All testing are done using C++17 (compiled with the `-O0` flag). We utilize the semaphore and event objects from the win32 C++ API and wrap in custom classes like below:
+
+Wrapper class of Event objects:
+```cpp
+class Event
+{
+private:
+    HANDLE _event;
+
+public:
+    Event(bool flag) : _event(CreateEventW(NULL, TRUE, flag, NULL)) {}
+    ~Event()
+    {
+        CloseHandle(_event);
+    }
+
+    void set()
+    {
+        SetEvent(_event);
+    }
+
+    void clear()
+    {
+        ResetEvent(_event);
+    }
+
+    void wait()
+    {
+        WaitForSingleObject(_event, INFINITE);
+    }
+};
+```
+
+Wrapper class of Semaphore and Lock objects:
+```cpp
+class Semaphore
+{
+private:
+    HANDLE _semaphore;
+
+public:
+    Semaphore(int count) : _semaphore(CreateSemaphoreW(NULL, count, count, NULL)) {}
+    ~Semaphore()
+    {
+        CloseHandle(_semaphore);
+    }
+
+    void acquire()
+    {
+        WaitForSingleObject(_semaphore, INFINITE);
+    }
+
+    void release(LONG count = 1)
+    {
+        ReleaseSemaphore(_semaphore, count, NULL);
+    }
+};
+
+class Lock : public Semaphore
+{
+public:
+    Lock() : Semaphore(1) {}
+
+    void release()
+    {
+        Semaphore::release();
+    }
+};
+```
+
 ## ABA Problem
 
 The ABA problem is a subtle challenge that can arise in multithreaded programming when dealing with shared memory. It occurs during synchronization, specifically when relying solely on a variable's current value to determine if data has been modified.
