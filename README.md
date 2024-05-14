@@ -243,8 +243,8 @@ Here is the description for this problem
   1. One smoker has an infinite supply of tobacco.
   2. Another smoker has an infinite supply of paper.
   3. The third smoker has an infinite supply of matches.
-* **Non-smoking Agent:** There is also a non-smoking agent who enables the smokers to make their cigarettes. The agent randomly selects two of the supplies and places them on the table.
-* **Smoking Process:**
+* **Non-smoking agent:** There is also a non-smoking agent who enables the smokers to make their cigarettes. The agent randomly selects two of the supplies and places them on the table.
+* **Smoking orocess:**
   1. The smoker who has the third supply should remove the two items from the table.
   2. They use these items (along with their own supply) to make a cigarette, which they smoke for a while.
   3. Once the smoker finishes smoking, the agent places two new random items on the table.
@@ -362,44 +362,44 @@ In the example above, The `agent` thread randomly places two ingredients on the 
 ### Real-world implications
 
 The Cigarette Smokers Problem in computer science, beyond being a theoretical exercise, has real-world implications, particularly in the field of concurrent programming and operating systems. Here are some of the key implications:
-* **Deadlock Prevention** The problem demonstrates a scenario where deadlock can occur if resources are not managed properly. In real-world systems, such as databases and operating systems, managing access to shared resources is crucial to prevent deadlock, which can cause systems to halt or become unresponsive.
-* **Resource Allocation** It illustrates the challenges in allocating limited resources among competing processes or threads. This is analogous to real-world situations where multiple applications or users require access to a finite set of resources, such as CPU time, memory, or network bandwidth.
-* **Synchronization Mechanisms** The problem highlights the importance of proper synchronization mechanisms, like semaphores, locks, and condition variables, to coordinate the actions of concurrent processes. These mechanisms are widely used in developing multi-threaded applications, ensuring that processes operate in the correct sequence without interfering with each other.
-* **System Design** It emphasizes the need for careful system design to avoid complex interdependencies that can lead to deadlock. This is relevant for designing systems that are robust, scalable, and maintainable.
-* **Understanding Concurrency** The problem serves as an educational tool to help programmers understand the complexities of concurrency, which is essential for developing efficient and reliable software in a multi-core and distributed computing world.
-* **Semaphore Limitations** The problem also points out the limitations of traditional semaphores and the need for more powerful synchronization primitives in certain scenarios.
+* **Deadlock prevention** The problem demonstrates a scenario where deadlock can occur if resources are not managed properly. In real-world systems, such as databases and operating systems, managing access to shared resources is crucial to prevent deadlock, which can cause systems to halt or become unresponsive.
+* **Resource allocation** It illustrates the challenges in allocating limited resources among competing processes or threads. This is analogous to real-world situations where multiple applications or users require access to a finite set of resources, such as CPU time, memory, or network bandwidth.
+* **Synchronization mechanisms** The problem highlights the importance of proper synchronization mechanisms, like semaphores, locks, and condition variables, to coordinate the actions of concurrent processes. These mechanisms are widely used in developing multi-threaded applications, ensuring that processes operate in the correct sequence without interfering with each other.
+* **System sesign** It emphasizes the need for careful system design to avoid complex interdependencies that can lead to deadlock. This is relevant for designing systems that are robust, scalable, and maintainable.
+* **Understanding concurrency** The problem serves as an educational tool to help programmers understand the complexities of concurrency, which is essential for developing efficient and reliable software in a multi-core and distributed computing world.
+* **Semaphore limitations** The problem also points out the limitations of traditional semaphores and the need for more powerful synchronization primitives in certain scenarios.
 
 ### Addressing the Cigarette Smokers Problem
 
 Several approaches can help mitigate the Cigarette Smokers Problem:
-* **Deadlock Avoidance:** Implement a deadlock avoidance strategy to prevent the system from entering a deadlock state.
-* **Priority-Based Allocation:** Assign priorities to processes or threads. When allocating resources, give preference to higher-priority processes. This helps prevent low-priority processes from blocking critical resources indefinitely.
-* **Resource Pooling:** Create a pool of resources (e.g., semaphores or locks) that processes can request. When a process is done, it releases the resource back to the pool. This avoids resource exhaustion and ensures fair access.
-* **Two-Phase Locking:** In database management systems, use two-phase locking to ensure that transactions acquire and release locks in a consistent order. This helps prevent deadlocks during data updates.
-* **Timeouts and Rollbacks:** If a process waits too long for a resource, introduce a timeout. If the timeout expires, the process releases its resources and rolls back its work. This prevents indefinite waiting.
-* **Resource Hierarchies:** Assign a hierarchy to resources (e.g., locks). Processes must acquire resources in a specific order (from lower to higher levels). This prevents circular waits.
-* **Dynamic Resource Allocation:** Dynamically allocate resources based on demand. For example, allocate memory or threads as needed and release them when no longer required.
-* **Avoidance of Hold-and-Wait:** Processes should request all required resources upfront (non-preemptive). If a process cannot acquire all resources, it releases any acquired resources and retries later.
+* **Deadlock avoidance:** Implement a deadlock avoidance strategy to prevent the system from entering a deadlock state.
+* **Priority-based allocation:** Assign priorities to processes or threads. When allocating resources, give preference to higher-priority processes. This helps prevent low-priority processes from blocking critical resources indefinitely.
+* **Resource pooling:** Create a pool of resources (e.g., semaphores or locks) that processes can request. When a process is done, it releases the resource back to the pool. This avoids resource exhaustion and ensures fair access.
+* **Two-phase locking:** In database management systems, use two-phase locking to ensure that transactions acquire and release locks in a consistent order. This helps prevent deadlocks during data updates.
+* **Timeouts and rollbacks:** If a process waits too long for a resource, introduce a timeout. If the timeout expires, the process releases its resources and rolls back its work. This prevents indefinite waiting.
+* **Resource hierarchies:** Assign a hierarchy to resources (e.g., locks). Processes must acquire resources in a specific order (from lower to higher levels). This prevents circular waits.
+* **Dynamic resource allocation:** Dynamically allocate resources based on demand. For example, allocate memory or threads as needed and release them when no longer required.
+* **Avoidance of hold-and-wait:** Processes should request all required resources upfront (non-preemptive). If a process cannot acquire all resources, it releases any acquired resources and retries later.
 * **Preemption:** If a high-priority process needs a resource held by a lower-priority process, preempt the lower-priority process and allocate the resource to the higher-priority one.
-* **Transaction Serialization:** In database systems, ensure that transactions are serialized (executed one after the other) to avoid conflicts and deadlocks.
+* **Transaction serialization:** In database systems, ensure that transactions are serialized (executed one after the other) to avoid conflicts and deadlocks.
 
 In summary, the Cigarette Smokers Problem is not just a theoretical construct but a representation of the real challenges faced in concurrent programming and system design. It encourages developers to think critically about process synchronization, resource allocation, and system robustness in the context of concurrent operations.
 
-### Barrier Synchronization Problems
+### Barrier Synchronization Problem
 
 Barrier synchronization problems arise in parallel computing when multiple threads or processes must reach a synchronization point (or barrier) at the same time. The primary purpose of a barrier is to ensure that no thread or process proceeds beyond a certain point until all others have reached that point. However, various issues can occur with this synchronization mechanism:
 
-#### Detailed Explanation
+#### Detailed explanation
 
-1. **Uneven Workload Distribution**:
+1. **Uneven workload distribution**:
    - **Problem**: If the workload is unevenly distributed among threads, some threads may finish their tasks much earlier than others and wait idly at the barrier, leading to inefficient use of resources.
    - **Example**: In a parallel algorithm where each thread processes a portion of an array, if some portions take significantly longer to process than others, faster threads will spend time waiting at the barrier.
 
-2. **Straggler Effect**:
+2. **Straggler effect**:
    - **Problem**: A single slow thread (straggler) can delay the entire batch of threads at the barrier, causing performance degradation.
    - **Example**: In a distributed system, if one node is slower due to network latency or lower processing power, it will cause all other nodes to wait, affecting overall system performance.
 
-3. **Resource Contention**:
+3. **Resource contention**:
    - **Problem**: When multiple threads converge on a barrier, there can be contention for the resources managing the barrier (e.g., locks or semaphores), potentially leading to performance bottlenecks.
    - **Example**: If a barrier implementation uses a shared lock, contention for this lock can increase as the number of threads grows, leading to increased wait times.
 
@@ -411,116 +411,116 @@ Barrier synchronization problems arise in parallel computing when multiple threa
    - **Problem**: Although less common, livelock can occur if threads constantly change state in response to each other without making progress through the barrier.
    - **Example**: Threads repeatedly entering and leaving the barrier due to incorrect signaling can lead to livelock, where no thread progresses past the barrier.
 
-6. **Complexity in Nested Barriers**:
+6. **Complexity in nested barriers**:
    - **Problem**: In complex programs with nested barriers, ensuring correct synchronization can be challenging and prone to errors, leading to unexpected behavior.
    - **Example**: If an outer barrier depends on the completion of an inner barrier, and there's a misconfiguration, threads may be incorrectly synchronized, causing logic errors.
 
-7. **High Overhead**:
+7. **High overhead**:
    - **Problem**: The overhead associated with managing barriers can become significant, especially in systems with a large number of threads, leading to performance issues.
    - **Example**: The time taken to manage and coordinate the barrier increases with the number of participating threads, reducing the benefits of parallelism.
 
-#### Solutions and Best Practices
+#### Solutions and best practices
 
-1. **Dynamic Load Balancing**:
+1. **Dynamic load balancing**:
    - Implement dynamic load balancing to ensure more even distribution of work among threads, reducing the likelihood of uneven workload distribution.
 
-2. **Hierarchical Barriers**:
+2. **Hierarchical barriers**:
    - Use hierarchical barriers that synchronize threads in smaller groups before synchronizing the entire set, reducing contention and overhead.
 
-3. **Timeout Mechanisms**:
+3. **Timeout mechanisms**:
    - Implement timeout mechanisms to detect and handle situations where threads are waiting too long at a barrier, potentially indicating a problem like a deadlock.
 
-4. **Profiling and Optimization**:
+4. **Profiling and optimization**:
    - Profile the application to identify bottlenecks and optimize the code to reduce the time threads spend waiting at barriers.
 
-5. **Efficient Barrier Implementations**:
+5. **Efficient barrier implementations**:
    - Use efficient barrier implementations that minimize contention and overhead, such as tree-based barriers or software combining trees.
 
-6. **Graceful Degradation**:
+6. **Graceful degradation**:
    - Design the system to handle stragglers gracefully, allowing other threads to perform useful work while waiting.
 
 By understanding and addressing these issues, developers can design more efficient and robust parallel programs that make effective use of barrier synchronization.
 
-### Atomicity Violation
+### Atomicity violation
 
 Atomicity violations occur when a sequence of operations that should be executed as a single, indivisible (atomic) operation are interrupted by other threads, leading to inconsistent or incorrect results. This issue is common in concurrent programming, where multiple threads access and modify shared data.
 
-#### Detailed Explanation
+#### Detailed explanation
 
-1. **Definition of Atomicity**:
-   - **Atomic Operation**: An operation or a set of operations that are performed as a single unit without interference from other operations. Either all operations are executed, or none are, ensuring data consistency.
+1. **Definition of atomicity**:
+   - **Atomic operation**: An operation or a set of operations that are performed as a single unit without interference from other operations. Either all operations are executed, or none are, ensuring data consistency.
 
-2. **Common Scenarios for Atomicity Violations**:
-   - **Check-Then-Act**: A thread checks a condition and then acts based on the result, but another thread changes the condition in between.
-   - **Read-Modify-Write**: A thread reads a value, modifies it, and writes it back, but another thread modifies the value in between the read and write steps.
+2. **Common scenarios for atomicity violations**:
+   - **Check-then-act**: A thread checks a condition and then acts based on the result, but another thread changes the condition in between.
+   - **Read-modify-write**: A thread reads a value, modifies it, and writes it back, but another thread modifies the value in between the read and write steps.
 
-3. **Example Scenarios**:
-   - **Bank Account Example**:
+3. **Example scenarios**:
+   - **Bank account example**:
      - Suppose two threads are transferring money from a shared bank account. The first thread checks the balance to ensure there are sufficient funds before making a transfer, while the second thread is simultaneously transferring money out. Without synchronization, both threads could read the same initial balance and proceed with the transfer, resulting in an overdrawn account.
-   - **Counter Increment Example**:
+   - **Counter increment example**:
      - Consider two threads incrementing a shared counter. Both threads read the current value, increment it, and write it back. Without synchronization, both threads might read the same value, increment it, and write back the same result, causing one increment to be lost.
 
-4. **Consequences of Atomicity Violations**:
-   - **Data Corruption**: Shared data can become inconsistent or corrupted.
-   - **Incorrect Program Behavior**: The program may produce incorrect results or exhibit unexpected behavior.
-   - **Security Vulnerabilities**: In some cases, atomicity violations can lead to security issues, such as race conditions exploited by attackers.
+4. **Consequences of atomicity violations**:
+   - **Data corruption**: Shared data can become inconsistent or corrupted.
+   - **Incorrect program behavior**: The program may produce incorrect results or exhibit unexpected behavior.
+   - **Security vulnerabilities**: In some cases, atomicity violations can lead to security issues, such as race conditions exploited by attackers.
 
-5. **Detection and Debugging**:
-   - **Testing and Debugging**: Atomicity violations can be difficult to detect through testing because they may only occur under specific timing conditions. Tools like thread analyzers and race condition detectors can help identify these issues.
-   - **Code Review**: Careful code review and understanding of concurrent programming principles can help spot potential atomicity violations.
+5. **Detection and debugging**:
+   - **Testing and debugging**: Atomicity violations can be difficult to detect through testing because they may only occur under specific timing conditions. Tools like thread analyzers and race condition detectors can help identify these issues.
+   - **Code review**: Careful code review and understanding of concurrent programming principles can help spot potential atomicity violations.
 
-6. **Preventive Measures and Solutions**:
-   - **Locks (Mutexes)**:
+6. **Preventive measures and solutions**:
+   - **Locks (mutexes)**:
      - Use locks to ensure that a sequence of operations is executed atomically. For example, acquire a lock before checking and modifying a shared variable and release it afterward.
-   - **Atomic Operations**:
+   - **Atomic operations**:
      - Use atomic operations provided by the programming language or library (e.g., `AtomicInteger` in Java, `std::atomic` in C++) to perform atomic read-modify-write operations.
-   - **Transaction Memory**:
+   - **Transaction memory**:
      - Utilize transactional memory systems where a series of read and write operations are grouped into a transaction, ensuring atomicity.
-   - **Higher-Level Concurrency Constructs**:
+   - **Higher-level concurrency constructs**:
      - Use higher-level constructs like semaphores, barriers, or synchronized collections that manage synchronization internally to prevent atomicity violations.
-   - **Volatile Keyword**:
+   - **Volatile keyword**:
      - In languages like Java, use the `volatile` keyword to ensure visibility and ordering of changes to a variable across threads, though this alone does not ensure atomicity.
 
-7. **Programming Practices**:
-   - **Minimize Shared Data**: Reduce the amount of shared data that needs to be accessed concurrently.
-   - **Immutable Objects**: Use immutable objects to avoid the need for synchronization on shared data.
-   - **Design for Concurrency**: Design the application with concurrency in mind from the start, considering how threads will interact with shared resources.
+7. **Programming practices**:
+   - **Minimize shared data**: Reduce the amount of shared data that needs to be accessed concurrently.
+   - **Immutable objects**: Use immutable objects to avoid the need for synchronization on shared data.
+   - **Design for concurrency**: Design the application with concurrency in mind from the start, considering how threads will interact with shared resources.
 
-### Lost Wakeup
+### Lost wakeup
 
 **Lost wakeup** occurs in concurrent programming when a thread misses a signal (or wakeup call) indicating that a condition it is waiting for has been met, leading to potential indefinite blocking. This typically happens when using condition variables, semaphores, or other synchronization mechanisms.
 
-#### Detailed Explanation
+#### Detailed explanation
 
-1. **Basic Concept**:
+1. **Basic concept**:
    - In concurrent programming, threads often need to wait for certain conditions to be true before proceeding. They typically wait on condition variables or similar constructs and are signaled (or "woken up") when the condition is met.
    - A lost wakeup occurs when the signal intended to wake up a waiting thread is sent before the thread starts waiting, causing the thread to miss the signal and remain blocked indefinitely.
 
-2. **Common Scenarios**:
-   - **Condition Variables**:
+2. **Common scenarios**:
+   - **Condition variables**:
      - Threads wait on a condition variable and are expected to be notified when a particular condition is true. If the notify call happens before the thread starts waiting, the thread will miss the signal and might wait forever.
    - **Semaphores**:
      - A thread waits for a semaphore to be released. If the release signal is sent before the thread starts waiting, the semaphore count is incremented, but the thread may not notice it and continue to wait.
 
-3. **Example Scenario**:
-   - **Producer-Consumer Problem**:
+3. **Example scenario**:
+   - **Producer-consumer problem**:
      - Consider a producer-consumer scenario where the consumer waits for an item to be produced. If the producer signals the condition variable before the consumer starts waiting, the consumer may miss the signal and wait indefinitely even though an item is available.
 
-4. **Consequences of Lost Wakeup**:
-   - **Indefinite Blocking**: The most severe consequence is that the affected thread remains blocked indefinitely, causing parts of the application to become unresponsive.
-   - **Performance Degradation**: Even if the application does not deadlock, lost wakeups can lead to performance issues as threads spend unnecessary time waiting.
+4. **Consequences of lost wakeup**:
+   - **Indefinite blocking**: The most severe consequence is that the affected thread remains blocked indefinitely, causing parts of the application to become unresponsive.
+   - **Performance degradation**: Even if the application does not deadlock, lost wakeups can lead to performance issues as threads spend unnecessary time waiting.
 
-5. **Detection and Debugging**:
-   - **Difficult to Reproduce**: Lost wakeups are often hard to detect and reproduce because they depend on specific timing conditions.
-   - **Thorough Testing**: Extensive and thorough testing, including stress testing and using concurrency testing tools, can help identify lost wakeup issues.
-   - **Code Review**: Careful review of synchronization logic can help spot potential causes of lost wakeup.
+5. **Detection and debugging**:
+   - **Difficult to reproduce**: Lost wakeups are often hard to detect and reproduce because they depend on specific timing conditions.
+   - **Thorough testing**: Extensive and thorough testing, including stress testing and using concurrency testing tools, can help identify lost wakeup issues.
+   - **Code review**: Careful review of synchronization logic can help spot potential causes of lost wakeup.
 
-6. **Preventive Measures and Solutions**:
-   - **Always Use Locks with Condition Variables**:
+6. **Preventive measures and solutions**:
+   - **Always use locks with condition variables**:
      - Ensure that the condition check and the wait call are both made while holding a lock. This prevents the condition from being signaled before the thread is ready to wait.
-   - **Double-Checked Locking**:
+   - **Double-checked locking**:
      - Before waiting, check the condition without holding the lock. Then, acquire the lock and check the condition again. Only wait if the condition is still false.
-   - **Spurious Wakeups**:
+   - **Spurious wakeups**:
      - Be aware that some systems can cause spurious wakeups, where a thread is woken up without a corresponding signal. Always use a loop to recheck the condition after being woken up.
-   - **Semaphore Alternatives**:
+   - **Semaphore alternatives**:
      - Use other synchronization primitives that may be less prone to lost wakeups, such as `CountDownLatch` or `CyclicBarrier` in Java.
