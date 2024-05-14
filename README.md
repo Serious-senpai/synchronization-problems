@@ -244,7 +244,7 @@ Here is the description for this problem
   2. Another smoker has an infinite supply of paper.
   3. The third smoker has an infinite supply of matches.
 * **Non-smoking agent:** There is also a non-smoking agent who enables the smokers to make their cigarettes. The agent randomly selects two of the supplies and places them on the table.
-* **Smoking orocess:**
+* **Smoking process:**
   1. The smoker who has the third supply should remove the two items from the table.
   2. They use these items (along with their own supply) to make a cigarette, which they smoke for a while.
   3. Once the smoker finishes smoking, the agent places two new random items on the table.
