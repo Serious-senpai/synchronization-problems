@@ -12,7 +12,7 @@ In computer science, concurrency is the ability of different parts or units of a
 
 According to Rob Pike, concurrency is the composition of independently executing computations, and concurrency is not parallelism: concurrency is about dealing with lots of things at once but parallelism is about doing lots of things at once. Concurrency is about structure, parallelism is about execution, concurrency provides a way to structure a solution to solve a problem that may (but not necessarily) be parallelizable.
 
-The following table compares the differences between different forms of execution.
+The following table compares the differences between different forms of execution in a multi-core machine.
 
 |             | Singlethreading (synchronous) | Singlethreading (asynchronous) | Multithreading | Multiprocessing |
 | ----------- | :---------------------------: | :----------------------------: | :------------: | :-------------: |
