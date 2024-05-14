@@ -67,17 +67,17 @@ public:
         CloseHandle(_event);
     }
 
-    void set()
+    void set() const
     {
         SetEvent(_event);
     }
 
-    void clear()
+    void clear() const
     {
         ResetEvent(_event);
     }
 
-    void wait()
+    void wait() const
     {
         WaitForSingleObject(_event, INFINITE);
     }
@@ -98,12 +98,12 @@ public:
         CloseHandle(_semaphore);
     }
 
-    void acquire()
+    void acquire() const
     {
         WaitForSingleObject(_semaphore, INFINITE);
     }
 
-    void release(LONG count = 1)
+    void release(LONG count = 1) const
     {
         ReleaseSemaphore(_semaphore, count, NULL);
     }
@@ -114,7 +114,7 @@ class Lock : public Semaphore
 public:
     Lock() : Semaphore(1) {}
 
-    void release()
+    void release() const
     {
         Semaphore::release();
     }
