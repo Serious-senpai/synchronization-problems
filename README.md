@@ -232,6 +232,116 @@ Several approaches can help mitigate the ABA problem:
 
 By understanding the ABA problem and implementing appropriate synchronization techniques, developers can ensure the integrity of data in multithreaded environments.
 
+## Sleeping Barber Problem
+
+The Sleeping Barber problem is a classic synchronization problem that illustrates the challenges of process management, specifically around CPU scheduling, resource allocation, and deadlock prevention.
+The scenario is as follows:
+* A barber works in a barbershop with one barber chair and a waiting room with several chairs.
+* If there are no customers, the barber goes to sleep.
+* When a customer arrives, if the barber is asleep, the customer wakes up the barber.
+* If the barber is busy, the customer sits in the waiting room.
+* If the waiting room is full, the customer leaves.
+
+### Example
+
+```cpp
+#include <iostream>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <queue>
+std::mutex mtx;
+std::condition_variable cv_barber;
+std::condition_variable cv_customer;
+std::queue<int> customers;
+const int NUM_CHAIRS = 5;
+bool done = false;
+void barber()
+{
+    std::unique_lock<std::mutex> lk(mtx);
+    while (!done)
+    {
+        while (customers.empty())
+        {
+            // Barber goes to sleep if no customers
+            std::cout << "Barber is sleeping." << std::endl;
+            cv_barber.wait(lk);
+        }
+        // Barber is cutting hair
+        std::cout << "Barber is cutting hair of customer " << customers.front() << std::endl;
+        customers.pop();
+        // Notify waiting customers
+        cv_customer.notify_one();
+    }
+}
+void customer(int id)
+{
+    std::unique_lock<std::mutex> lk(mtx);
+    if (customers.size() < NUM_CHAIRS)
+    {
+        // Customer sits in waiting room
+        customers.push(id);
+        std::cout << "Customer " << id << " is waiting." << std::endl;
+        // Wake up the barber if sleeping
+        cv_barber.notify_one();
+        // Wait for the barber to be ready
+        cv_customer.wait(lk, [&]{ return customers.front() == id; });
+    }
+    else
+    {
+        // Waiting room is full
+        std::cout << "Customer " << id << " leaves as waiting room is full." << std::endl;
+    }
+}
+int main()
+{
+    std::thread barber_thread(barber);
+    std::thread customers_thread[NUM_CHAIRS];
+    // Create customer threads
+    for (int i = 0; i < NUM_CHAIRS; ++i)
+    {
+        customers_thread[i] = std::thread(customer, i+1);
+    }
+    // Join customer threads
+    for (auto& th : customers_thread)
+    {
+        th.join();
+    }
+    // End of the day
+    done = true;
+    cv_barber.notify_one();
+    barber_thread.join();
+    return 0;
+}
+```
+
+In the example above:
+* The barber thread waits for customers and cuts their hair.
+* Customers arrive, check if there’s space in the waiting room, and either wait or leave.
+* Semaphores (`cv_barber` and `cv_customer`) are used for synchronization.
+
+### Real-world implications
+
+* **Customer Service Queues:** Similar to the barbershop scenario, customer service centers often have a limited number of representatives to handle a fluctuating number of customer calls or requests. The challenge is to efficiently manage the queue so that customers are served in a timely manner without overwhelming the service reps.
+* **Computer Operating Systems:** In operating systems, managing multiple processes that need access to limited CPU time or memory resources is akin to the Sleeping Barber problem. The OS must ensure that each process gets a fair chance to execute without causing deadlock or starvation.
+* **Database Access:** Multiple applications or users trying to access and modify a database can lead to concurrency issues. The Sleeping Barber problem helps in designing systems that prevent conflicts and ensure data integrity when multiple transactions occur simultaneously.
+* **Airport Runway Scheduling:** Air traffic controllers must manage the takeoffs and landings of aircraft on a limited number of runways. The principles derived from the Sleeping Barber problem can help in creating schedules that maximize runway usage while maintaining safety.
+* **Hospital Emergency Rooms:** In healthcare, particularly in emergency rooms, patients must be attended based on the severity of their condition. The Sleeping Barber problem’s solutions can inform the design of triage systems that manage patient flow effectively.
+* **Web Server Management:** Web servers handling requests for web pages or services must manage their threads to respond to simultaneous requests. The Sleeping Barber problem provides insights into how to balance load without causing long wait times or server crashes.
+
+### Addressing the Sleeping Barber Problem
+
+Several approaches can help mitigate the Sleeping Barber problem:
+* **Semaphores:** The most common solution involves using semaphores to coordinate access to resources. Semaphores can be used to signal the availability of the barber (or resource) and the waiting chairs (queue space). This ensures that customers (or tasks) are served in the order they arrive and that the barber (or resource) is not overwhelmed.
+* **Mutexes:** Mutexes are used to ensure mutual exclusion, particularly in critical sections of the code where variables are accessed by multiple threads. This prevents race conditions and ensures that the system’s state remains consistent.
+* **Condition Variables:** These are used in conjunction with mutexes to block a thread until a particular condition is met. For example, a barber thread might wait on a condition variable until there is a customer in the waiting room.
+* **Monitor Constructs:** Monitors are higher-level synchronization constructs that provide a mechanism for threads to temporarily give up exclusive access in order to wait for some condition to be met, without risking deadlock or busy-waiting.
+* **Message Passing:** In distributed systems, message passing can be used to synchronize processes. This involves sending messages between processes to signal the availability of resources or the need for service.
+* **Event Counters:** These can be used to keep track of the number of waiting customers and to signal the barber when a customer arrives. This helps in managing the queue and ensuring that no customer is missed.
+* **Ticket Algorithms:** Ticket algorithms can be used to assign a unique number to each customer, ensuring that service is provided in the correct order. This is similar to taking a number at a deli counter.
+
+By understanding the Sleeping Barber problem and implementing appropriate synchronization techniques, developers  learn how to efficiently manage limited resources in concurrent systems. 
+
 ## Cigarette smokers problem
 
 The cigarette smokers problem is a classic concurrency problem in computer science. This problem highlights the challenges of coordinating multiple processes or threads that share resources and need to synchronize their actions.
