@@ -53,7 +53,7 @@ If the internal counter of the semaphore has an upper limit of 1, it is identica
 
 All testing are done using C++17 (compiled with the `-O0` flag). We utilize the semaphore and event objects from the win32 C++ API and wrap in custom classes like below:
 
-Wrapper class of Event objects:
+Wrapper class for `Event` objects:
 ```cpp
 class Event
 {
@@ -84,7 +84,7 @@ public:
 };
 ```
 
-Wrapper class of Semaphore and Lock objects:
+Wrapper class for `Semaphore` and `Lock` objects:
 ```cpp
 class Semaphore
 {
@@ -117,6 +117,59 @@ public:
     void release() const
     {
         Semaphore::release();
+    }
+};
+```
+
+Additionally, we define a `Condition` class as below:
+```cpp
+class Condition
+{
+private:
+    const Lock *_lock;
+    std::deque<Lock> _waiters;
+
+public:
+    Condition(const Lock *lock) : _lock(lock) {}
+
+    void acquire()
+    {
+        _lock->acquire();
+    }
+
+    void release()
+    {
+        _lock->release();
+    }
+
+    void wait()
+    {
+        Lock waiter = Lock();
+        waiter.acquire();
+        _waiters.push_back(waiter);
+
+        release();
+        waiter.acquire();
+    }
+
+    void notify(int n)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            if (_waiters.empty())
+            {
+                return;
+            }
+
+            auto front = _waiters.front();
+            _waiters.pop_front();
+            front.release();
+        }
+    }
+
+    void notify_all()
+    {
+        notify(_waiters.size());
     }
 };
 ```
