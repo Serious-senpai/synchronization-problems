@@ -353,6 +353,118 @@ Several approaches can help mitigate the ABA problem:
 
 By understanding the ABA problem and implementing appropriate synchronization techniques, developers can ensure the integrity of data in multithreaded environments.
 
+## Sleeping Barber Problem
+
+The Sleeping Barber problem is a classic synchronization problem that illustrates the challenges of process management, specifically around CPU scheduling, resource allocation, and deadlock prevention.
+The scenario is as follows:
+* A barber works in a barbershop with one barber chair and a waiting room with several chairs.
+* If there are no customers, the barber goes to sleep.
+* When a customer arrives, if the barber is asleep, the customer wakes up the barber.
+* If the barber is busy, the customer sits in the waiting room.
+* If the waiting room is full, the customer leaves.
+
+There are two main complications. First, there is a risk that a race condition, where the barber sleeps while a customer waits for the barber to get them for a haircut, arises because all of the actions - checking the waiting room, entering the shop, taking a waiting room chair - take a certain amount of time. Specifically, a customer may arrive to find the barber cutting hair so they return to the waiting room to take a seat but while walking back to the waiting room the barber finishes the haircut and goes to the waiting room, which he finds empty (because the customer walks slowly) and thus goes to sleep in the barber chair. Second, another problem may occur when two customers arrive at the same time when there is only one empty seat in the waiting room and both try to sit in the single chair; only the first person to get to the chair will be able to sit.
+
+A multiple sleeping barbers problem has the additional complexity of coordinating several barbers among the waiting customers.
+### Example
+
+```cpp
+#include <iostream>
+#include <vector>
+#include <windows.h>
+
+HANDLE barber_ready = CreateSemaphoreW(NULL, 0, 1, NULL);
+HANDLE read_write_seats = CreateSemaphoreW(NULL, 1, 1, NULL);
+HANDLE ready_customers = CreateSemaphoreW(NULL, 0, 1, NULL);
+
+int free_seats = 3; // assume there are 3 seats in the waiting room
+
+DWORD WINAPI barber(void *)
+{
+    while (true)
+    {
+        WaitForSingleObject(ready_customers, INFINITE);
+        WaitForSingleObject(read_write_seats, INFINITE);
+
+        free_seats++;
+
+        ReleaseSemaphore(barber_ready, 1, NULL);
+        ReleaseSemaphore(read_write_seats, 1, NULL);
+
+        // cut hair
+        std::cout << "Cutting hair\n";
+    }
+}
+
+DWORD WINAPI customer(void *)
+{
+    while (true)
+    {
+        WaitForSingleObject(read_write_seats, INFINITE);
+        if (free_seats > 0)
+        {
+            free_seats--;
+            ReleaseSemaphore(ready_customers, 1, NULL);
+            ReleaseSemaphore(read_write_seats, 1, NULL);
+            WaitForSingleObject(barber_ready, INFINITE);
+
+            // have a hair cut
+        }
+        else
+        {
+            ReleaseSemaphore(read_write_seats, 1, NULL);
+            std::cout << "No empty slots, leaving...\n";
+        }
+    }
+}
+
+int main()
+{
+    HANDLE barber_thread = CreateThread(NULL, 0, &barber, NULL, 0, NULL);
+
+    std::vector<HANDLE> customer_threads;
+    for (int i = 0; i < 4; i++)
+    {
+        customer_threads.push_back(CreateThread(NULL, 0, &customer, NULL, 0, NULL));
+    }
+
+    WaitForSingleObject(barber_thread, INFINITE);
+    for (auto &thread : customer_threads)
+    {
+        WaitForSingleObject(thread, INFINITE);
+    }
+
+    return 0;
+}
+```
+
+In the example above:
+* The barber thread waits for customers and cuts their hair.
+* Customers arrive, check if there’s space in the waiting room, and either wait or leave.
+* Semaphores (`cv_barber` and `cv_customer`) are used for synchronization.
+
+### Real-world implications
+
+* **Customer Service Queues:** Similar to the barbershop scenario, customer service centers often have a limited number of representatives to handle a fluctuating number of customer calls or requests. The challenge is to efficiently manage the queue so that customers are served in a timely manner without overwhelming the service reps.
+* **Computer Operating Systems:** In operating systems, managing multiple processes that need access to limited CPU time or memory resources is akin to the Sleeping Barber problem. The OS must ensure that each process gets a fair chance to execute without causing deadlock or starvation.
+* **Database Access:** Multiple applications or users trying to access and modify a database can lead to concurrency issues. The Sleeping Barber problem helps in designing systems that prevent conflicts and ensure data integrity when multiple transactions occur simultaneously.
+* **Airport Runway Scheduling:** Air traffic controllers must manage the takeoffs and landings of aircraft on a limited number of runways. The principles derived from the Sleeping Barber problem can help in creating schedules that maximize runway usage while maintaining safety.
+* **Hospital Emergency Rooms:** In healthcare, particularly in emergency rooms, patients must be attended based on the severity of their condition. The Sleeping Barber problem’s solutions can inform the design of triage systems that manage patient flow effectively.
+* **Web Server Management:** Web servers handling requests for web pages or services must manage their threads to respond to simultaneous requests. The Sleeping Barber problem provides insights into how to balance load without causing long wait times or server crashes.
+
+### Addressing the Sleeping Barber Problem
+
+Several approaches can help mitigate the Sleeping Barber problem:
+* **Semaphores:** The most common solution involves using semaphores to coordinate access to resources. Semaphores can be used to signal the availability of the barber (or resource) and the waiting chairs (queue space). This ensures that customers (or tasks) are served in the order they arrive and that the barber (or resource) is not overwhelmed.
+* **Mutexes:** Mutexes are used to ensure mutual exclusion, particularly in critical sections of the code where variables are accessed by multiple threads. This prevents race conditions and ensures that the system’s state remains consistent.
+* **Condition Variables:** These are used in conjunction with mutexes to block a thread until a particular condition is met. For example, a barber thread might wait on a condition variable until there is a customer in the waiting room.
+* **Monitor Constructs:** Monitors are higher-level synchronization constructs that provide a mechanism for threads to temporarily give up exclusive access in order to wait for some condition to be met, without risking deadlock or busy-waiting.
+* **Message Passing:** In distributed systems, message passing can be used to synchronize processes. This involves sending messages between processes to signal the availability of resources or the need for service.
+* **Event Counters:** These can be used to keep track of the number of waiting customers and to signal the barber when a customer arrives. This helps in managing the queue and ensuring that no customer is missed.
+* **Ticket Algorithms:** Ticket algorithms can be used to assign a unique number to each customer, ensuring that service is provided in the correct order. This is similar to taking a number at a deli counter.
+
+By understanding the Sleeping Barber problem and implementing appropriate synchronization techniques, developers  learn how to efficiently manage limited resources in concurrent systems. 
+
 ## Cigarette smokers problem
 
 The cigarette smokers problem is a classic concurrency problem in computer science. This problem highlights the challenges of coordinating multiple processes or threads that share resources and need to synchronize their actions.
