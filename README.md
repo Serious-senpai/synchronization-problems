@@ -246,71 +246,70 @@ The scenario is as follows:
 
 ```cpp
 #include <iostream>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <queue>
-std::mutex mtx;
-std::condition_variable cv_barber;
-std::condition_variable cv_customer;
-std::queue<int> customers;
-const int NUM_CHAIRS = 5;
-bool done = false;
-void barber()
+#include <vector>
+#include <windows.h>
+
+HANDLE barber_ready = CreateSemaphoreW(NULL, 0, 1, NULL);
+HANDLE read_write_seats = CreateSemaphoreW(NULL, 1, 1, NULL);
+HANDLE ready_customers = CreateSemaphoreW(NULL, 0, 1, NULL);
+
+int free_seats = 3; // assume there are 3 seats in the waiting room
+
+DWORD WINAPI barber(void *)
 {
-    std::unique_lock<std::mutex> lk(mtx);
-    while (!done)
+    while (true)
     {
-        while (customers.empty())
+        WaitForSingleObject(ready_customers, INFINITE);
+        WaitForSingleObject(read_write_seats, INFINITE);
+
+        free_seats++;
+
+        ReleaseSemaphore(barber_ready, 1, NULL);
+        ReleaseSemaphore(read_write_seats, 1, NULL);
+
+        // cut hair
+        std::cout << "Cutting hair\n";
+    }
+}
+
+DWORD WINAPI customer(void *)
+{
+    while (true)
+    {
+        WaitForSingleObject(read_write_seats, INFINITE);
+        if (free_seats > 0)
         {
-            // Barber goes to sleep if no customers
-            std::cout << "Barber is sleeping." << std::endl;
-            cv_barber.wait(lk);
+            free_seats--;
+            ReleaseSemaphore(ready_customers, 1, NULL);
+            ReleaseSemaphore(read_write_seats, 1, NULL);
+            WaitForSingleObject(barber_ready, INFINITE);
+
+            // have a hair cut
         }
-        // Barber is cutting hair
-        std::cout << "Barber is cutting hair of customer " << customers.front() << std::endl;
-        customers.pop();
-        // Notify waiting customers
-        cv_customer.notify_one();
+        else
+        {
+            ReleaseSemaphore(read_write_seats, 1, NULL);
+            std::cout << "No empty slots, leaving...\n";
+        }
     }
 }
-void customer(int id)
-{
-    std::unique_lock<std::mutex> lk(mtx);
-    if (customers.size() < NUM_CHAIRS)
-    {
-        // Customer sits in waiting room
-        customers.push(id);
-        std::cout << "Customer " << id << " is waiting." << std::endl;
-        // Wake up the barber if sleeping
-        cv_barber.notify_one();
-        // Wait for the barber to be ready
-        cv_customer.wait(lk, [&]{ return customers.front() == id; });
-    }
-    else
-    {
-        // Waiting room is full
-        std::cout << "Customer " << id << " leaves as waiting room is full." << std::endl;
-    }
-}
+
 int main()
 {
-    std::thread barber_thread(barber);
-    std::thread customers_thread[NUM_CHAIRS];
-    // Create customer threads
-    for (int i = 0; i < NUM_CHAIRS; ++i)
+    HANDLE barber_thread = CreateThread(NULL, 0, &barber, NULL, 0, NULL);
+
+    std::vector<HANDLE> customer_threads;
+    for (int i = 0; i < 4; i++)
     {
-        customers_thread[i] = std::thread(customer, i+1);
+        customer_threads.push_back(CreateThread(NULL, 0, &customer, NULL, 0, NULL));
     }
-    // Join customer threads
-    for (auto& th : customers_thread)
+
+    WaitForSingleObject(barber_thread, INFINITE);
+    for (auto &thread : customer_threads)
     {
-        th.join();
+        WaitForSingleObject(thread, INFINITE);
     }
-    // End of the day
-    done = true;
-    cv_barber.notify_one();
-    barber_thread.join();
+
     return 0;
 }
 ```
