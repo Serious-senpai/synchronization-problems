@@ -872,3 +872,13 @@ int main()
 ```
 
 Note that this solution may lead to starvation. The readers is encouraged to develop a starvation-free solution. 
+
+## References
+
+- https://en.wikipedia.org/wiki/ABA_problem
+- https://pub.dev/documentation/async_locks/latest/async_locks/async_locks-library.html
+- https://docs.python.org/3/library/threading.html
+- https://en.wikipedia.org/wiki/Sleeping_barber_problem
+- https://en.wikipedia.org/wiki/Cigarette_smokers_problem
+- https://www.cis.upenn.edu/~devietti/papers/lucia.atomaid.toppicks.2009.pdf
+- https://www.cs.cornell.edu/courses/cs4410/2010fa/synchreview.pdf
