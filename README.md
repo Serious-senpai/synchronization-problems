@@ -3,9 +3,10 @@
 Problems commonly found when implementing concurrency and parallelism.
 
 Students:
-- Nguyen Thai Khoi 20224868
 - Nguyen Thai Hoa 20224850
+- Nguyen Thai Khoi 20224868
 - Vu Tung Lam 20225140
+- Dao Phuc Long 20220034
 
 ## Concurrency
 In computer science, concurrency is the ability of different parts or units of a program, algorithm, or problem to be executed out-of-order or in partial order, without affecting the outcome. This allows for parallel execution of the concurrent units, which can significantly improve overall speed of the execution in multi-processor and multi-core systems. In more technical terms, concurrency refers to the decomposability of a program, algorithm, or problem into order-independent or partially-ordered components or units of computation.
@@ -48,6 +49,37 @@ A semaphore is a synchronization primitive that maintains a counter indicating t
 When multiple threads are waiting for the semaphore, they will be put in a FIFO queue and only the first one will proceed when the semaphore becomes available.
 
 If the internal counter of the semaphore has an upper limit of 1, it is identical to a lock.
+
+### Condition
+
+A condition variable is always associated with some kind of lock; this can be passed in or one will be created by default. Passing one in is useful when several condition variables must share the same lock. The lock is part of the condition object: we do not have to track it separately.
+
+Other methods must be called with the associated lock held. The `wait()` method releases the lock, and then blocks until another thread awakens it by calling `notify()` or `notify_all()`. Once awakened, `wait()` re-acquires the lock and returns. It is also possible to specify a timeout.
+
+The `notify()` method wakes up one of the threads waiting for the condition variable, if any are waiting. The `notify_all()` method wakes up all threads waiting for the condition variable.
+
+Note: the `notify()` and `notify_all()` methods do not release the lock; this means that the thread or threads awakened will not return from their `wait()` call immediately, but only when the thread that called `notify()` or `notify_all()` finally relinquishes ownership of the lock.
+
+The typical programming style using condition variables uses the lock to synchronize access to some shared state; threads that are interested in a particular change of state call `wait()` repeatedly until they see the desired state, while threads that modify the state call `notify()` or `notify_all()` when they change the state in such a way that it could possibly be a desired state for one of the waiters. For example, the following code is a generic producer-consumer situation with unlimited buffer capacity:
+
+```cpp
+Condition condition = Condition(Lock());
+
+// Consume one item
+condition.acquire();
+while (!an_item_is_available())
+{
+    condition.wait();
+}
+get_an_available_item();
+condition.release();
+
+// Produce one item
+condition.acquire();
+make_an_item_available();
+condition.notify();
+condition.release();
+```
 
 ## Implementation
 
@@ -121,7 +153,7 @@ public:
 };
 ```
 
-Additionally, we define a `Condition` class as below:
+Additionally, we implement a `Condition` class as below:
 ```cpp
 class Condition
 {
